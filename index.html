@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>An example of bifrost</title>
+    <script src="client.js"></script>
+</head>
+
+<body>
+    <p>This is an example client of <a href="https://github.com/yw662/bifrost">bifrost</a></p>
+    <p><span>Bridge: </span><input id="bridge" value="wss://bifrost.yw662.dynu.net" /></p>
+    <p><span>Protocol: </span><input id="protocol" /><span>Host: </span><input id="host" /><span>Port: </span><input
+            id="port" /><button id="connect">connect</button></p>
+    <script>
+        document.getElementById('connect').addEventListener('click', async () => {
+            const skt = new BifrostSocket({
+                bridge: document.getElementById('bridge').value,
+                protocol: document.getElementById('protocol').value,
+                host: document.getElementById('host').value,
+                port: document.getElementById('port').value
+            });
+            document.body.append(document.createElement('br'));
+            const input = document.createElement('input');
+            document.body.append(input);
+            const text = document.createElement('div');
+            document.body.append(text);
+            input.addEventListener('keypress', e => {
+                if (e.keyCode === 13) {
+                    skt.send(input.value + '\r\n');
+                    text.innerHTML += '<p>' + input.value + '</p>';
+                    input.value = '';
+                }
+            })
+            await skt.init();
+            skt.on('data', async () => {
+                const buffers = await skt.recv();
+                for (const b of buffers) {
+                    if (b.text) {
+                        b.text().then(t => {
+                            const container = document.createElement('pre');
+                            container.innerText = t;
+                            text.append(container);
+                        });
+                    } else {
+                        const container = document.createElement('pre');
+                        container.innerText = b;
+                        text.append(container);
+                    }
+                }
+            });
+            skt.on('close', () => {
+                text.innerHTML += '<br/><p>' + 'closed' + '</p>';
+                document.body.removeChild(input);
+            })
+        })
+    </script>
+</body>
+
+</html>
