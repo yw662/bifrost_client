@@ -27,6 +27,10 @@
             document.body.append(input);
             const text = document.createElement('div');
             document.body.append(text);
+            text.innerHTML = '<p>New connection to&nbsp;'
+                + skt.options.protocol + '://'
+                + skt.options.host + ':' + skt.options.port +
+                '&nbsp;via&nbsp;' + skt.options.bridge + '</p>';
             input.addEventListener('keypress', e => {
                 if (e.keyCode === 13) {
                     skt.send(input.value + '\r\n');
